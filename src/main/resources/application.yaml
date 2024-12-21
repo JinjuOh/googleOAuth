@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: googleOAuth
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 679247825269-mnog2rm2sr10nktp3ig5b1kvhjtoeo0h.apps.googleusercontent.com
+            client-secret: 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
+            scope: profile, email
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+
+server:
+  port: 3000
