@@ -12,10 +12,10 @@ spring:
           google:
             client-id: 679247825269-mnog2rm2sr10nktp3ig5b1kvhjtoeo0h.apps.googleusercontent.com
             client-secret: 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
-            scope: profile, email
+            scope: profile, email, openid
         provider:
           google:
-            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            authorization-uri: https://accounts.google.com/o/oauth2/auth?access_type=offline&prompt=consent
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub

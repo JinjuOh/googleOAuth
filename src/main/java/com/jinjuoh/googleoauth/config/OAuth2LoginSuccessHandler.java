@@ -1,17 +1,22 @@
 package com.jinjuoh.googleoauth.config;
 
 import com.jinjuoh.googleoauth.service.TokenService;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.security.Principal;
 
 @Component
-public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
+public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     private final TokenService tokenService;
 
@@ -21,7 +26,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-            throws IOException {
+            throws IOException, ServletException {
         if (authentication.getPrincipal() instanceof OidcUser) {
             OidcUser oidcUser = (OidcUser) authentication.getPrincipal();
 
@@ -36,7 +41,15 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             }
         }
 
-        // 성공 후 리다이렉트 처리
-        response.sendRedirect("/"); // 원하는 경로로 리다이렉트
+        SavedRequest savedRequest = new HttpSessionRequestCache().getRequest(request, response);
+        if (savedRequest != null) {
+            System.out.println("SavedRequest URL: " + savedRequest.getRedirectUrl());
+        }
+        System.out.println("Authentication after success: " + SecurityContextHolder.getContext().getAuthentication());
+
+        // SavedRequestAwareAuthenticationSuccessHandler로 리디렉트 처리
+        SavedRequestAwareAuthenticationSuccessHandler successHandler = new SavedRequestAwareAuthenticationSuccessHandler();
+        successHandler.setDefaultTargetUrl("/"); // 기본 리디렉트 경로
+        successHandler.onAuthenticationSuccess(request, response, authentication);
     }
 }

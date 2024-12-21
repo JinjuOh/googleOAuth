@@ -12,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
 @Configuration
 @EnableWebSecurity
@@ -29,13 +30,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/oauth2/**", "/logout").permitAll() // 인증 없이 허용
+                        .requestMatchers("/","/login", "/oauth2/**", "/logout").permitAll() // 인증 없이 허용
                         .anyRequest().authenticated() // 그 외 요청은 인증 필요
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/oauth2/authorization/google") // Google OAuth2 로그인 페이지로 리디렉션
+                        .successHandler(new OAuth2LoginSuccessHandler(tokenService))
                 )
                 .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
@@ -49,7 +50,11 @@ public class SecurityConfig {
                         .logoutSuccessHandler((request, response, authentication) -> {
                             response.setStatus(HttpServletResponse.SC_OK);
                         })
-                );
+                )
+                .requestCache(
+                        requestCache -> requestCache.requestCache(new HttpSessionRequestCache())
+                )
+        ;
 
         return http.build();
     }
